@@ -1,0 +1,247 @@
+{
+  "stores": {
+    "ST1008": {
+      "store_id": "ST1008",
+      "store_name": "Brigade_Bangalore",
+      "city": "Bangalore",
+      "open_hours": {
+        "open": "11:00",
+        "close": "22:00"
+      },
+      "cameras": {
+        "CAM_ENTRY_01": {
+          "description": "Entry/Exit threshold camera",
+          "type": "entry",
+          "entry_threshold": {
+            "axis": "y",
+            "value": 500,
+            "inside": "below"
+          },
+          "zones": []
+        },
+        "CAM_FLOOR_01": {
+          "description": "Main floor camera covering skin, makeup, hair zones",
+          "type": "floor",
+          "entry_threshold": null,
+          "zones": [
+            {
+              "zone_id": "SKIN_CARE",
+              "sku_zone": "skin",
+              "polygon": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  540,
+                  0
+                ],
+                [
+                  540,
+                  360
+                ],
+                [
+                  0,
+                  360
+                ]
+              ]
+            },
+            {
+              "zone_id": "MAKEUP",
+              "sku_zone": "makeup",
+              "polygon": [
+                [
+                  540,
+                  0
+                ],
+                [
+                  1080,
+                  0
+                ],
+                [
+                  1080,
+                  360
+                ],
+                [
+                  540,
+                  360
+                ]
+              ]
+            },
+            {
+              "zone_id": "HAIR_CARE",
+              "sku_zone": "hair",
+              "polygon": [
+                [
+                  0,
+                  360
+                ],
+                [
+                  540,
+                  360
+                ],
+                [
+                  540,
+                  720
+                ],
+                [
+                  0,
+                  720
+                ]
+              ]
+            },
+            {
+              "zone_id": "BATH_BODY",
+              "sku_zone": "bath-and-body",
+              "polygon": [
+                [
+                  540,
+                  360
+                ],
+                [
+                  1080,
+                  360
+                ],
+                [
+                  1080,
+                  720
+                ],
+                [
+                  540,
+                  720
+                ]
+              ]
+            }
+          ]
+        },
+        "CAM_FLOOR_02": {
+          "description": "Secondary floor camera covering skin, makeup, hair and bath/body zones",
+          "type": "floor",
+          "entry_threshold": null,
+          "zones": [
+            {
+              "zone_id": "SKIN_CARE",
+              "sku_zone": "skin",
+              "polygon": [[0, 0], [540, 0], [540, 360], [0, 360]]
+            },
+            {
+              "zone_id": "MAKEUP",
+              "sku_zone": "makeup",
+              "polygon": [[540, 0], [1080, 0], [1080, 360], [540, 360]]
+            },
+            {
+              "zone_id": "HAIR_CARE",
+              "sku_zone": "hair",
+              "polygon": [[0, 360], [540, 360], [540, 720], [0, 720]]
+            },
+            {
+              "zone_id": "BATH_BODY",
+              "sku_zone": "bath-and-body",
+              "polygon": [[540, 360], [1080, 360], [1080, 720], [540, 720]]
+            }
+          ]
+        },
+        "CAM_FLOOR_03": {
+          "description": "Third floor camera covering skin, makeup, hair and bath/body zones",
+          "type": "floor",
+          "entry_threshold": null,
+          "zones": [
+            {
+              "zone_id": "SKIN_CARE",
+              "sku_zone": "skin",
+              "polygon": [[0, 0], [540, 0], [540, 360], [0, 360]]
+            },
+            {
+              "zone_id": "MAKEUP",
+              "sku_zone": "makeup",
+              "polygon": [[540, 0], [1080, 0], [1080, 360], [540, 360]]
+            },
+            {
+              "zone_id": "HAIR_CARE",
+              "sku_zone": "hair",
+              "polygon": [[0, 360], [540, 360], [540, 720], [0, 720]]
+            },
+            {
+              "zone_id": "BATH_BODY",
+              "sku_zone": "bath-and-body",
+              "polygon": [[540, 360], [1080, 360], [1080, 720], [540, 720]]
+            }
+          ]
+        },
+        "CAM_BILLING_01": {
+          "description": "Billing counter and fragrance/personal care area",
+          "type": "billing",
+          "entry_threshold": null,
+          "zones": [
+            {
+              "zone_id": "BILLING",
+              "sku_zone": "billing",
+              "polygon": [
+                [
+                  380,
+                  400
+                ],
+                [
+                  900,
+                  400
+                ],
+                [
+                  900,
+                  700
+                ],
+                [
+                  380,
+                  700
+                ]
+              ]
+            },
+            {
+              "zone_id": "FRAGRANCE",
+              "sku_zone": "fragrance",
+              "polygon": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  380,
+                  0
+                ],
+                [
+                  380,
+                  400
+                ],
+                [
+                  0,
+                  400
+                ]
+              ]
+            },
+            {
+              "zone_id": "PERSONAL_CARE",
+              "sku_zone": "personal-care",
+              "polygon": [
+                [
+                  900,
+                  0
+                ],
+                [
+                  1280,
+                  0
+                ],
+                [
+                  1280,
+                  400
+                ],
+                [
+                  900,
+                  400
+                ]
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

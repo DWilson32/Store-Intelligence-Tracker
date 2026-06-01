@@ -1,0 +1,41 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/data
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:////data/store_intelligence.db
+      - YOLO_MODEL=yolov8n.pt
+      - DB_ECHO=0
+    # GPU acceleration is optional — uncomment the deploy block below if
+    # running on a machine with an NVIDIA GPU for faster YOLO inference.
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  dashboard:
+    image: python:3.11-slim
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./dashboard/web:/srv
+    command: ["python", "-m", "http.server", "3000", "--directory", "/srv"]
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped

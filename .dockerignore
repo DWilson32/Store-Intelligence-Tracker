@@ -1,0 +1,16 @@
+.pytest_cache
+__pycache__
+*.pyc
+
+.git
+.gitignore
+
+data/clips
+data/events
+data/*.db
+data/*.db-*
+data/*.xlsx
+
+tests/__pycache__
+pipeline/__pycache__
+app/__pycache__

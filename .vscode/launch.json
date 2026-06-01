@@ -1,0 +1,74 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "1. Start FastAPI API Server",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": [
+        "app.main:app",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "8000",
+        "--reload"
+      ],
+      "env": {
+        "DATABASE_URL": "sqlite+aiosqlite:///${workspaceFolder}/data/store_intelligence.db",
+        "YOLO_MODEL": "yolov8n.pt"
+      },
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "2. Start Live Dashboard (Terminal)",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/dashboard/live_dashboard.py",
+      "env": {
+        "API_URL": "http://127.0.0.1:8000",
+        "STORE_ID": "ST1008"
+      },
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "3. Load Raw POS Transactions",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/scripts/load_pos.py",
+      "args": [
+        "--csv",
+        "${workspaceFolder}/data/Brigade_Bangalore_10_April_26.csv",
+        "--raw"
+      ],
+      "env": {
+        "DATABASE_URL": "sqlite+aiosqlite:///${workspaceFolder}/data/store_intelligence.db"
+      },
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "4. Run Detection Pipeline (Rerun)",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/scripts/run_detection.py",
+      "env": {
+        "DATABASE_URL": "sqlite+aiosqlite:///${workspaceFolder}/data/store_intelligence.db"
+      },
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "5. Run Pytests",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": [
+        "tests/",
+        "-v"
+      ],
+      "env": {
+        "DATABASE_URL": "sqlite+aiosqlite:///:memory:"
+      },
+      "console": "integratedTerminal"
+    }
+  ]
+}

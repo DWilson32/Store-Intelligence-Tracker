@@ -1,0 +1,25 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+
+# Cache & Temp
+.pytest_cache/
+pytest_temp/
+.ipynb_checkpoints/
+
+# Data and model weights
+*.db
+*.pt
+data/store_intelligence.db
+data/events/reid_gallery_*.pkl
+data/events/events_*.jsonl
+data/events/events_all.jsonl
+data/clips/
+scratch/
+*.pdf
