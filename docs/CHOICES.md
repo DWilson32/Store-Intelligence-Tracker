@@ -1,5 +1,12 @@
 # CHOICES.md — Three Design Decisions
 
+> [!NOTE]
+> **TL;DR (30-Second Review Guide)**
+> * **Decision 1 (Detection)**: YOLOv8n + ByteTrack chosen over YOLOv8m/RT-DETR to ensure fluid CPU execution (~15fps) on any reviewer's machine without requiring a GPU.
+> * **Decision 2 (Schema)**: Option C (event-per-state-change with schema-defined metadata) chosen. Session state/funnel is reconstructed at query time via `visitor_id` grouping.
+> * **Decision 3 (API & DB)**: FastAPI + SQLite (async reads, sync writes) chosen over PostgreSQL for seamless, single-command zero-dependency deployment (`docker compose up`) under the Acceptance Gate.
+> * **Decision 4 (Tracking)**: Shared `ReIDGallery` and remapped camera channels to correctly link visitors across entry, floor, and billing feeds.
+
 ## Decision 1: Detection Model — YOLOv8n + ByteTrack
 
 ### Options Considered

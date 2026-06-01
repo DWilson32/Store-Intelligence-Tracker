@@ -1,5 +1,12 @@
 # DESIGN.md — Store Intelligence System Architecture
 
+> [!NOTE]
+> **TL;DR (30-Second Review Guide)**
+> * **Architecture**: 4-stage pipeline: YOLOv8n + ByteTrack + OSNet Re-ID (`pipeline/`) &rarr; JSONL events &rarr; FastAPI + SQLite (`app/`) &rarr; Live Web Dashboard (`dashboard/web/`).
+> * **Cross-Camera Re-ID**: Solved by sharing a unified `MultiCameraTracker` (cosine similarity) across camera clips processed in sequence (entry &rarr; floor &rarr; billing).
+> * **Edge Cases**: Excludes staff using torso HSV color analysis; handles re-entry via a 10-minute similarity buffer.
+> * **AI Decisions**: Claude assisted in Re-ID thresholds (0.75/0.70) and SQLite vs Postgres choices; overrode Claude to strictly enforce the 5-minute POS window spec.
+
 ## System Overview
 
 The Store Intelligence system is a full pipeline from raw CCTV footage to a live queryable analytics API. It has four stages: detection, event emission, ingestion, and analytics.
