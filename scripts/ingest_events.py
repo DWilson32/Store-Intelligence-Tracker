@@ -1,7 +1,7 @@
 """Ingest all event JSONL files into the API."""
 import json, os, httpx
 
-API = "http://localhost:8000"
+API = "http://127.0.0.1:8000"
 EVENTS_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "events")
 
 accepted = 0

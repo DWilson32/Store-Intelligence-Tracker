@@ -10,6 +10,7 @@ Features:
 """
 
 import logging
+import uuid
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, Request
@@ -50,6 +51,40 @@ async def _upsert_events(session: AsyncSession, events: list[StoreEventIn]) -> d
             continue
         seen_in_batch.add(ev.event_id)
 
+        # Calculate dwell_ms for ZONE_EXIT if it is 0 or None
+        dwell_ms = ev.dwell_ms
+        if ev.event_type == "ZONE_EXIT" and (dwell_ms == 0 or dwell_ms is None):
+            enter_ts = None
+            for prev_ev in reversed(events[:i]):
+                if (
+                    prev_ev.visitor_id == ev.visitor_id
+                    and prev_ev.zone_id == ev.zone_id
+                    and prev_ev.event_type == "ZONE_ENTER"
+                ):
+                    enter_ts = prev_ev.timestamp
+                    break
+            
+            if not enter_ts:
+                db_res = await session.execute(
+                    select(EventRecord.timestamp).where(
+                        EventRecord.store_id == ev.store_id,
+                        EventRecord.visitor_id == ev.visitor_id,
+                        EventRecord.zone_id == ev.zone_id,
+                        EventRecord.event_type == "ZONE_ENTER"
+                    ).order_by(EventRecord.timestamp.desc()).limit(1)
+                )
+                db_row = db_res.first()
+                if db_row:
+                    enter_ts = db_row[0]
+            
+            if enter_ts:
+                try:
+                    t_enter = datetime.fromisoformat(enter_ts.replace("Z", "+00:00"))
+                    t_exit = datetime.fromisoformat(ev.timestamp.replace("Z", "+00:00"))
+                    dwell_ms = int((t_exit - t_enter).total_seconds() * 1000)
+                except Exception as ex:
+                    logger.warning(f"Failed to calculate dwell time: {ex}")
+
         records_to_insert.append({
             "event_id":   ev.event_id,
             "store_id":   ev.store_id,
@@ -58,7 +93,7 @@ async def _upsert_events(session: AsyncSession, events: list[StoreEventIn]) -> d
             "event_type": ev.event_type,
             "timestamp":  ev.timestamp,
             "zone_id":    ev.zone_id,
-            "dwell_ms":   ev.dwell_ms,
+            "dwell_ms":   dwell_ms or 0,
             "is_staff":   ev.is_staff,
             "confidence": ev.confidence,
             "queue_depth": ev.metadata.queue_depth if ev.metadata else None,

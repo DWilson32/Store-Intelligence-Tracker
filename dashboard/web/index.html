@@ -537,7 +537,7 @@
       <div class="logo">SI</div>
       <div>
         <h1>Store Intelligence</h1>
-        <div class="header-subtitle">ST1008 — Brigade Road, Bangalore</div>
+        <div class="header-subtitle" id="headerSubtitle">ST1008 — Brigade Road, Bangalore</div>
       </div>
     </div>
     <div class="header-right">
@@ -645,6 +645,16 @@
     const API_URL = 'http://localhost:8000';
     const urlParams = new URLSearchParams(window.location.search);
     const STORE_ID = urlParams.get('store_id') || 'ST1008';
+
+    // Dynamically update the header subtitle
+    const subtitleEl = document.getElementById('headerSubtitle');
+    if (subtitleEl) {
+      if (STORE_ID === 'ST1076') {
+        subtitleEl.textContent = 'ST1076 — Mumbai Purplle Store';
+      } else {
+        subtitleEl.textContent = 'ST1008 — Brigade Road, Bangalore';
+      }
+    }
     const HOURS = 99999;
     const REFRESH_INTERVAL = 5000;
 

@@ -108,9 +108,9 @@ def detect_staff_by_uniform(frame: np.ndarray, bbox: tuple[int,int,int,int]) -> 
 # ---------------------------------------------------------------------------
 
 class ZoneClassifier:
-    def __init__(self, layout: dict, camera_id: str):
+    def __init__(self, layout: dict, camera_id: str, store_id: Optional[str] = None):
         self.zones = []
-        camera_data = get_camera_layout(layout, camera_id)
+        camera_data = get_camera_layout(layout, camera_id, store_id)
         for zone in camera_data.get("zones", []):
             self.zones.append({
                 "zone_id": zone["zone_id"],
@@ -312,8 +312,8 @@ class EntryExitClassifier:
     Threshold is a horizontal or vertical line segment. Movement crossing
     from outside-to-inside = ENTRY, inside-to-outside = EXIT.
     """
-    def __init__(self, layout: dict, camera_id: str):
-        cam = get_camera_layout(layout, camera_id)
+    def __init__(self, layout: dict, camera_id: str, store_id: Optional[str] = None):
+        cam = get_camera_layout(layout, camera_id, store_id)
         self.threshold = cam.get("entry_threshold", None)
         # threshold format: {"axis": "y", "value": 400, "inside": "below"}
         # or              : {"axis": "x", "value": 200, "inside": "right"}
@@ -351,8 +351,13 @@ class EntryExitClassifier:
         return None
 
 
-def get_camera_layout(layout: dict, camera_id: str) -> dict:
+def get_camera_layout(layout: dict, camera_id: str, store_id: Optional[str] = None) -> dict:
     """Return a camera definition from flat or nested store layout JSON."""
+    if store_id and "stores" in layout:
+        store_data = layout["stores"].get(store_id)
+        if store_data and camera_id in store_data.get("cameras", {}):
+            return store_data["cameras"][camera_id]
+
     if camera_id in layout.get("cameras", {}):
         return layout["cameras"][camera_id]
 
@@ -436,8 +441,8 @@ class StoreDetector:
             else datetime.now(timezone.utc)
         )
 
-        self.zone_classifier = ZoneClassifier(self.layout, camera_id)
-        self.entry_exit_clf = EntryExitClassifier(self.layout, camera_id)
+        self.zone_classifier = ZoneClassifier(self.layout, camera_id, store_id)
+        self.entry_exit_clf = EntryExitClassifier(self.layout, camera_id, store_id)
         self.tracker = tracker or MultiCameraTracker(store_id=store_id)
         self.group_detector = GroupDetector()
 
