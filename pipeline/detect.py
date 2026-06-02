@@ -761,6 +761,7 @@ class StoreDetector:
                         session.billing_join_ts = timestamp
                         session.billing_zone_id = zone_info["zone_id"]
                         session.billing_zone_name = zone_info.get("zone_name", zone_info["zone_id"])
+                        session.queue_position_at_join = queue_depth
 
                         if self.output_format != "sample" and self.emitter:
                             self.emitter.emit(
@@ -786,7 +787,7 @@ class StoreDetector:
                     wait_seconds = int(
                         (frame_idx - (session.billing_entry_frame or frame_idx)) / fps
                     )
-                    queue_pos = self.tracker.get_queue_position(self.camera_id)
+                    queue_pos = getattr(session, "queue_position_at_join", 1)
 
                     if self.output_format == "sample" and self.sample_emitter:
                         # In sample format, we emit queue_completed/queue_abandoned
