@@ -527,6 +527,32 @@
     .mini-stat-value.emerald { color: var(--accent-emerald); }
     .mini-stat-value.amber { color: var(--accent-amber); }
     .mini-stat-value.cyan { color: var(--accent-cyan); }
+
+    /* ── Store Selector ───────────────────────────────────── */
+    .store-select {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      border: 1px solid var(--border-card);
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      outline: none;
+      cursor: pointer;
+      transition: var(--transition);
+      appearance: none;
+      background-image: url("data:image/svg+xml;utf8,<svg fill='%2394a3b8' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+      padding-right: 32px;
+    }
+    .store-select:hover {
+      border-color: var(--accent-indigo);
+      box-shadow: 0 0 10px rgba(99, 102, 241, 0.2);
+    }
+    .store-select:focus {
+      border-color: var(--accent-indigo);
+    }
   </style>
 </head>
 <body>
@@ -541,6 +567,9 @@
       </div>
     </div>
     <div class="header-right">
+      <select id="storeSelector" class="store-select" onchange="onStoreChange(this.value)">
+        <option value="">Loading stores...</option>
+      </select>
       <div class="status-badge" id="statusBadge">
         <span class="status-dot"></span>
         <span id="statusText">Connecting...</span>
@@ -644,21 +673,14 @@
   <script>
     const API_URL = 'http://localhost:8000';
     const urlParams = new URLSearchParams(window.location.search);
-    const STORE_ID = urlParams.get('store_id') || 'ST1008';
+    let STORE_ID = urlParams.get('store_id') || 'ST1008';
+    let allStores = {};
+    let currentStoreConfig = null;
 
-    // Dynamically update the header subtitle
-    const subtitleEl = document.getElementById('headerSubtitle');
-    if (subtitleEl) {
-      if (STORE_ID === 'ST1076') {
-        subtitleEl.textContent = 'ST1076 — Mumbai Purplle Store';
-      } else {
-        subtitleEl.textContent = 'ST1008 — Brigade Road, Bangalore';
-      }
-    }
     const HOURS = 99999;
     const REFRESH_INTERVAL = 5000;
 
-    const ZONE_COLORS = {
+    const PRESET_COLORS = {
       'BATH_BODY':     'bath-body',
       'HAIR_CARE':     'hair-care',
       'MAKEUP':        'makeup',
@@ -666,14 +688,9 @@
       'FRAGRANCE':     'fragrance',
       'BILLING':       'billing',
       'PERSONAL_CARE': 'personal-care',
-      // Store 2 Mumbai Z01-Z03 zones
-      'PURPLLE_MUM_1076_Z01': 'skin-care',
-      'PURPLLE_MUM_1076_Z02': 'makeup',
-      'PURPLLE_MUM_1076_Z03': 'makeup',
-      'PURPLLE_MUM_1076_Z_BILLING_01': 'billing',
     };
 
-    const ZONE_LABELS = {
+    const PRESET_LABELS = {
       'BATH_BODY':     'Bath & Body',
       'HAIR_CARE':     'Hair Care',
       'MAKEUP':        'Makeup',
@@ -681,12 +698,52 @@
       'FRAGRANCE':     'Fragrance',
       'BILLING':       'Billing',
       'PERSONAL_CARE': 'Personal Care',
-      // Store 2 Mumbai Z01-Z03 zones
-      'PURPLLE_MUM_1076_Z01': 'Left Shelf',
-      'PURPLLE_MUM_1076_Z02': 'Center Display',
-      'PURPLLE_MUM_1076_Z03': 'Lipstick Aisle',
-      'PURPLLE_MUM_1076_Z_BILLING_01': 'Billing Counter Queue',
     };
+
+    function getZoneColorClass(zoneId, storeConfig) {
+      if (PRESET_COLORS[zoneId]) return PRESET_COLORS[zoneId];
+      if (storeConfig && storeConfig.cameras) {
+        for (const camId in storeConfig.cameras) {
+          const cam = storeConfig.cameras[camId];
+          if (cam.zones) {
+            const found = cam.zones.find(z => z.zone_id === zoneId);
+            if (found) {
+              const sku = (found.sku_zone || '').toLowerCase();
+              if (sku.includes('skin')) return 'skin-care';
+              if (sku.includes('makeup') || sku.includes('lipstick')) return 'makeup';
+              if (sku.includes('hair')) return 'hair-care';
+              if (sku.includes('bath') || sku.includes('body')) return 'bath-body';
+              if (sku.includes('fragrance')) return 'fragrance';
+              if (sku.includes('billing')) return 'billing';
+              if (sku.includes('personal')) return 'personal-care';
+            }
+          }
+        }
+      }
+      const classes = ['bath-body', 'hair-care', 'makeup', 'skin-care', 'fragrance', 'billing', 'personal-care'];
+      let hash = 0;
+      for (let i = 0; i < zoneId.length; i++) {
+        hash = zoneId.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      const idx = Math.abs(hash) % classes.length;
+      return classes[idx];
+    }
+
+    function getZoneLabel(zoneId, storeConfig) {
+      if (PRESET_LABELS[zoneId]) return PRESET_LABELS[zoneId];
+      if (storeConfig && storeConfig.cameras) {
+        for (const camId in storeConfig.cameras) {
+          const cam = storeConfig.cameras[camId];
+          if (cam.zones) {
+            const found = cam.zones.find(z => z.zone_id === zoneId);
+            if (found) {
+              return found.zone_name || found.sku_zone || found.zone_id;
+            }
+          }
+        }
+      }
+      return zoneId.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    }
 
     const HEATMAP_COLORS = [
       'rgba(30, 41, 59, 0.8)',    // 0 visits
@@ -772,8 +829,8 @@
 
       container.innerHTML = zones.map(z => {
         const pct = Math.max((z.visit_count / maxVisits) * 100, 4);
-        const cls = ZONE_COLORS[z.zone_id] || 'bath-body';
-        const label = ZONE_LABELS[z.zone_id] || z.zone_id;
+        const cls = getZoneColorClass(z.zone_id, currentStoreConfig);
+        const label = getZoneLabel(z.zone_id, currentStoreConfig);
         const dwellSec = (z.avg_dwell_ms / 1000).toFixed(1);
         return `
           <div class="zone-row">
@@ -826,14 +883,30 @@
       const zones = data.avg_dwell_ms_per_zone;
       const maxVisits = Math.max(...zones.map(z => z.visit_count), 1);
 
-      // Predefined store layout grid (ST1076 vs ST1008)
-      const layout = STORE_ID === 'ST1076' ? [
-        'PURPLLE_MUM_1076_Z01', 'PURPLLE_MUM_1076_Z02', 'PURPLLE_MUM_1076_Z03', 'PURPLLE_MUM_1076_Z_BILLING_01',
-        null, null, null, null
-      ] : [
-        'SKIN_CARE', 'MAKEUP', 'FRAGRANCE', 'BILLING',
-        'HAIR_CARE', 'BATH_BODY', 'PERSONAL_CARE', null,
-      ];
+      // Dynamic layout grid construction
+      const layout = [];
+      if (currentStoreConfig && currentStoreConfig.cameras) {
+        for (const camId in currentStoreConfig.cameras) {
+          const cam = currentStoreConfig.cameras[camId];
+          if (cam.zones) {
+            cam.zones.forEach(z => {
+              if (!layout.includes(z.zone_id)) {
+                layout.push(z.zone_id);
+              }
+            });
+          }
+        }
+      }
+      
+      // Fallback: if no zones in config, use what we got in metrics
+      if (layout.length === 0) {
+        zones.forEach(z => layout.push(z.zone_id));
+      }
+
+      // Pad to multiples of 4 for a nice 4-column grid layout
+      while (layout.length % 4 !== 0 || layout.length < 8) {
+        layout.push(null);
+      }
 
       const zoneMap = {};
       zones.forEach(z => zoneMap[z.zone_id] = z);
@@ -843,7 +916,7 @@
         const z = zoneMap[zid];
         const count = z ? z.visit_count : 0;
         const color = getHeatColor(count, maxVisits);
-        const label = ZONE_LABELS[zid] || zid;
+        const label = getZoneLabel(zid, currentStoreConfig);
         return `
           <div class="heatmap-cell" style="background: ${color}" title="${label}: ${count} visits">
             <div class="heatmap-cell-name">${label}</div>
@@ -969,9 +1042,66 @@
       }
     }
 
+    async function loadStores() {
+      try {
+        const res = await fetch(`${API_URL}/stores`);
+        if (!res.ok) throw new Error('Failed to load stores');
+        allStores = await res.json();
+        
+        // Populate selector
+        const selector = document.getElementById('storeSelector');
+        if (selector) {
+          selector.innerHTML = Object.keys(allStores).map(sid => {
+            const s = allStores[sid];
+            const displayName = s.store_name ? `${sid} — ${s.store_name}` : sid;
+            return `<option value="${sid}">${displayName}</option>`;
+          }).join('');
+          
+          // Preselect current STORE_ID
+          if (allStores[STORE_ID]) {
+            selector.value = STORE_ID;
+          } else if (Object.keys(allStores).length > 0) {
+            STORE_ID = Object.keys(allStores)[0];
+            selector.value = STORE_ID;
+          }
+        }
+        
+        currentStoreConfig = allStores[STORE_ID] || null;
+        updateHeaderInfo();
+      } catch (e) {
+        console.error('Error loading stores:', e);
+      }
+    }
+
+    function updateHeaderInfo() {
+      const subtitleEl = document.getElementById('headerSubtitle');
+      if (subtitleEl && currentStoreConfig) {
+        const name = currentStoreConfig.store_name || STORE_ID;
+        const city = currentStoreConfig.city || '';
+        subtitleEl.textContent = `${STORE_ID} — ${name}${city ? ', ' + city : ''}`;
+      }
+    }
+
+    function onStoreChange(val) {
+      if (!val) return;
+      STORE_ID = val;
+      currentStoreConfig = allStores[STORE_ID] || null;
+      updateHeaderInfo();
+      
+      // Update URL query parameter without reloading
+      const newUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}?store_id=${STORE_ID}`;
+      window.history.pushState({ path: newUrl }, '', newUrl);
+      
+      refresh();
+    }
+
     // Initial load + interval
-    refresh();
-    setInterval(refresh, REFRESH_INTERVAL);
+    async function init() {
+      await loadStores();
+      await refresh();
+      setInterval(refresh, REFRESH_INTERVAL);
+    }
+    init();
   </script>
 
 </body>

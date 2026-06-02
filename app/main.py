@@ -13,6 +13,8 @@ Endpoints:
 import logging
 import time
 import uuid
+import os
+import json
 from contextlib import asynccontextmanager
 from typing import Any
 
@@ -151,3 +153,19 @@ app.include_router(pos_router)
 @app.get("/", include_in_schema=False)
 async def root():
     return {"service": "store-intelligence-api", "version": "1.0.0", "docs": "/docs"}
+
+
+@app.get("/stores")
+async def list_stores():
+    layout_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "store_layout.json")
+    if os.path.exists(layout_path):
+        try:
+            with open(layout_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                return data.get("stores", {})
+        except Exception as e:
+            return JSONResponse(
+                status_code=500,
+                content={"error": "failed_to_load_layout", "message": str(e)}
+            )
+    return {}

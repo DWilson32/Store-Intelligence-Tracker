@@ -36,6 +36,13 @@ from pipeline.tracker import MultiCameraTracker, ReIDGallery, SimpleIoUTracker, 
 # Fixtures
 # ---------------------------------------------------------------------------
 
+@pytest.fixture(autouse=True)
+def mock_reid_gallery_io():
+    with patch("pipeline.tracker.ReIDGallery._load_gallery"), \
+         patch("pipeline.tracker.ReIDGallery._save_gallery"):
+        yield
+
+
 @pytest.fixture
 def tmp_output(tmp_path):
     return str(tmp_path / "events.jsonl")
