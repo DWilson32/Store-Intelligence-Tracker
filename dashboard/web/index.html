@@ -826,8 +826,11 @@
       const zones = data.avg_dwell_ms_per_zone;
       const maxVisits = Math.max(...zones.map(z => z.visit_count), 1);
 
-      // Predefined store layout grid
-      const layout = [
+      // Predefined store layout grid (ST1076 vs ST1008)
+      const layout = STORE_ID === 'ST1076' ? [
+        'PURPLLE_MUM_1076_Z01', 'PURPLLE_MUM_1076_Z02', 'PURPLLE_MUM_1076_Z03', 'PURPLLE_MUM_1076_Z_BILLING_01',
+        null, null, null, null
+      ] : [
         'SKIN_CARE', 'MAKEUP', 'FRAGRANCE', 'BILLING',
         'HAIR_CARE', 'BATH_BODY', 'PERSONAL_CARE', null,
       ];

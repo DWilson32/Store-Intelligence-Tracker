@@ -61,6 +61,7 @@ STAFF_UNIFORM_COLORS_HSV = [
     (np.array([100, 60, 60]), np.array([130, 255, 255])), # blue uniform
     (np.array([0, 0, 200]),  np.array([180, 30, 255])),   # white uniform
     (np.array([0, 0, 0]),    np.array([180, 255, 55])),   # black uniform
+    (np.array([140, 30, 80]), np.array([175, 255, 255])), # pink uniform (Store 2)
 ]
 
 
@@ -98,7 +99,7 @@ def detect_staff_by_uniform(frame: np.ndarray, bbox: tuple[int,int,int,int]) -> 
         ratio = np.sum(mask > 0) / total_pixels
         max_ratio = max(max_ratio, float(ratio))
 
-    is_staff = max_ratio > 0.55
+    is_staff = max_ratio > 0.40
     confidence = min(max_ratio, 1.0)
     return is_staff, confidence
 
