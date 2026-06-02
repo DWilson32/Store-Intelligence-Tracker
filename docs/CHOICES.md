@@ -58,3 +58,30 @@
 ### AI Recommendation vs Decision
 - **AI Recommendation**: None (did not address cross-camera tracker matching).
 - **Selected**: Option B. Remapped camera channels and passed a single tracker instance to ensure visitor continuity.
+
+---
+
+## Decision 5: Store 2 Event Schema Support & Database Column Additions
+
+### Options Considered
+- **Option A (Generic JSON blob column)**: Store all new sample properties (gender, age, group_id, etc.) inside a single JSON text column.
+- **Option B (Dedicated SQL columns)**: [Selected] Add nullable database columns to the SQLite schema and Pydantic models for every extended field.
+
+### AI Recommendation vs Decision
+- **AI Recommendation**: Option A. Faster to implement and doesn't require database schema changes.
+- **Selected**: Option B.
+- **Rationale**: Dedicated SQL columns make real-time metrics queries significantly faster, easier to index, and avoid database-specific JSON parsing syntax. It also preserves strict Pydantic model validation.
+
+---
+
+## Decision 6: Re-ID Mocking for Pipeline Unit Tests
+
+### Options Considered
+- **Option A (Manual filesystem deletion)**: Add shell scripts to delete `.pkl` files before test runs.
+- **Option B (Autouse module test fixtures)**: [Selected] Mock the `ReIDGallery` save/load methods directly inside `conftest.py`/`test_pipeline.py`.
+
+### AI Recommendation vs Decision
+- **AI Recommendation**: None.
+- **Selected**: Option B.
+- **Rationale**: Isolates pipeline tests from persistent on-disk state. This prevents real run logs from creating mock track collisions and ensures a clean, isolated database state for every unit test execution.
+
