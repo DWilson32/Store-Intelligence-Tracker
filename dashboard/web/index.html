@@ -643,7 +643,8 @@
 
   <script>
     const API_URL = 'http://localhost:8000';
-    const STORE_ID = 'ST1008';
+    const urlParams = new URLSearchParams(window.location.search);
+    const STORE_ID = urlParams.get('store_id') || 'ST1008';
     const HOURS = 99999;
     const REFRESH_INTERVAL = 5000;
 
@@ -655,6 +656,11 @@
       'FRAGRANCE':     'fragrance',
       'BILLING':       'billing',
       'PERSONAL_CARE': 'personal-care',
+      // Store 2 Mumbai Z01-Z03 zones
+      'PURPLLE_MUM_1076_Z01': 'skin-care',
+      'PURPLLE_MUM_1076_Z02': 'makeup',
+      'PURPLLE_MUM_1076_Z03': 'makeup',
+      'PURPLLE_MUM_1076_Z_BILLING_01': 'billing',
     };
 
     const ZONE_LABELS = {
@@ -665,6 +671,11 @@
       'FRAGRANCE':     'Fragrance',
       'BILLING':       'Billing',
       'PERSONAL_CARE': 'Personal Care',
+      // Store 2 Mumbai Z01-Z03 zones
+      'PURPLLE_MUM_1076_Z01': 'Left Shelf',
+      'PURPLLE_MUM_1076_Z02': 'Center Display',
+      'PURPLLE_MUM_1076_Z03': 'Lipstick Aisle',
+      'PURPLLE_MUM_1076_Z_BILLING_01': 'Billing Counter Queue',
     };
 
     const HEATMAP_COLORS = [
