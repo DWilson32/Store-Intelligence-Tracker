@@ -242,6 +242,72 @@
           ]
         }
       }
+    },
+    "ST1076": {
+      "store_id": "ST1076",
+      "store_name": "Purplle_Mumbai_1076",
+      "city": "Mumbai",
+      "open_hours": { "open": "10:00", "close": "22:00" },
+      "cameras": {
+        "CAM_ENTRY_01": {
+          "description": "Main entrance camera 1",
+          "type": "entry",
+          "entry_threshold": { "axis": "y", "value": 400, "inside": "above" },
+          "zones": []
+        },
+        "CAM_ENTRY_02": {
+          "description": "Main entrance camera 2",
+          "type": "entry",
+          "entry_threshold": { "axis": "y", "value": 400, "inside": "above" },
+          "zones": []
+        },
+        "CAM_ZONE_01": {
+          "description": "Main floor zone camera covering shelf and display areas",
+          "type": "floor",
+          "entry_threshold": null,
+          "zones": [
+            {
+              "zone_id": "PURPLLE_MUM_1076_Z01",
+              "zone_name": "Left Shelf",
+              "zone_type": "SHELF",
+              "is_revenue_zone": "Yes",
+              "sku_zone": "skincare",
+              "polygon": [[0, 0], [400, 0], [400, 480], [0, 480]]
+            },
+            {
+              "zone_id": "PURPLLE_MUM_1076_Z02",
+              "zone_name": "Center Display",
+              "zone_type": "DISPLAY",
+              "is_revenue_zone": "Yes",
+              "sku_zone": "makeup",
+              "polygon": [[400, 0], [880, 0], [880, 480], [400, 480]]
+            },
+            {
+              "zone_id": "PURPLLE_MUM_1076_Z03",
+              "zone_name": "Lipstick Aisle",
+              "zone_type": "SHELF",
+              "is_revenue_zone": "Yes",
+              "sku_zone": "lipstick",
+              "polygon": [[880, 0], [1280, 0], [1280, 480], [880, 480]]
+            }
+          ]
+        },
+        "CAM_BILLING_01": {
+          "description": "Billing counter and queue area",
+          "type": "billing",
+          "entry_threshold": null,
+          "zones": [
+            {
+              "zone_id": "PURPLLE_MUM_1076_Z_BILLING_01",
+              "zone_name": "Billing Counter Queue",
+              "zone_type": "BILLING",
+              "is_revenue_zone": "Yes",
+              "sku_zone": "billing",
+              "polygon": [[300, 100], [980, 100], [980, 620], [300, 620]]
+            }
+          ]
+        }
+      }
     }
   }
 }

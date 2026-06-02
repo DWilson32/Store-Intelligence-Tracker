@@ -15,6 +15,23 @@ class EventMetadataIn(BaseModel):
     queue_depth: Optional[int] = None
     sku_zone: Optional[str] = None
     session_seq: Optional[int] = None
+    # Extended fields for sample event schema
+    gender_pred: Optional[str] = None
+    age_pred: Optional[int] = None
+    age_bucket: Optional[str] = None
+    is_face_hidden: Optional[bool] = None
+    group_id: Optional[str] = None
+    group_size: Optional[int] = None
+    zone_name: Optional[str] = None
+    zone_type: Optional[str] = None
+    is_revenue_zone: Optional[str] = None
+    zone_hotspot_x: Optional[float] = None
+    zone_hotspot_y: Optional[float] = None
+    queue_join_ts: Optional[str] = None
+    queue_served_ts: Optional[str] = None
+    queue_exit_ts: Optional[str] = None
+    wait_seconds: Optional[int] = None
+    queue_position: Optional[int] = None
 
     class Config:
         extra = "allow"

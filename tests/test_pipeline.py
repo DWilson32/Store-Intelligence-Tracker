@@ -337,3 +337,111 @@ class TestStaffDetection:
         is_staff, conf = detect_staff_by_uniform(frame, (50, 50, 50, 50))
         assert is_staff is False
         assert conf == 0.0
+
+
+# ---------------------------------------------------------------------------
+# Sample emitter and normalization tests
+# ---------------------------------------------------------------------------
+
+class TestSampleEmitterAndNormalization:
+    def test_sample_emitter_entry_exit(self, tmp_path):
+        from pipeline.emit import SampleEventEmitter
+        import json
+
+        output_path = str(tmp_path / "sample_events.jsonl")
+        emitter = SampleEventEmitter(store_id="ST1076", camera_id="CAM_ENTRY_01", output_path=output_path)
+        
+        emitter.emit_entry_exit(
+            event_type="ENTRY",
+            visitor_id="VIS_test123",
+            timestamp="2026-03-08T18:10:05.120000",
+            is_staff=False,
+            gender_pred="F",
+            age_pred=28,
+            is_face_hidden=False,
+            group_id="G_10",
+            group_size=2,
+        )
+        emitter.flush()
+
+        with open(output_path) as f:
+            lines = f.readlines()
+            assert len(lines) == 1
+            data = json.loads(lines[0])
+            assert data["event_type"] == "entry"
+            assert data["id_token"] == "VIS_test123"
+            assert data["store_code"] == "store_1076"
+            assert data["camera_id"] == "camentry_01"
+            assert data["gender_pred"] == "F"
+            assert data["age_bucket"] == "25-34"
+            assert data["group_id"] == "G_10"
+            assert data["group_size"] == 2
+
+    def test_sample_emitter_zone(self, tmp_path):
+        from pipeline.emit import SampleEventEmitter
+        import json
+
+        output_path = str(tmp_path / "sample_events.jsonl")
+        emitter = SampleEventEmitter(store_id="ST1076", camera_id="CAM_ZONE_01", output_path=output_path)
+        
+        emitter.emit_zone(
+            event_type="ZONE_ENTER",
+            track_id=101,
+            timestamp="2026-03-08T18:10:45.280000",
+            zone_id="PURPLLE_MUM_1076_Z01",
+            zone_name="Left Shelf",
+            zone_type="SHELF",
+            is_revenue_zone="Yes",
+            cx=412.6,
+            cy=238.4,
+            gender="F",
+            age=28,
+        )
+        emitter.flush()
+
+        with open(output_path) as f:
+            lines = f.readlines()
+            assert len(lines) == 1
+            data = json.loads(lines[0])
+            assert data["event_type"] == "zone_entered"
+            assert data["track_id"] == 101
+            assert data["zone_id"] == "PURPLLE_MUM_1076_Z01"
+            assert data["zone_name"] == "Left Shelf"
+            assert data["zone_type"] == "SHELF"
+            assert data["zone_hotspot_x"] == 412.6
+            assert data["zone_hotspot_y"] == 238.4
+
+    def test_sample_emitter_queue(self, tmp_path):
+        from pipeline.emit import SampleEventEmitter
+        import json
+
+        output_path = str(tmp_path / "sample_events.jsonl")
+        emitter = SampleEventEmitter(store_id="ST1076", camera_id="CAM_BILLING_01", output_path=output_path)
+        
+        emitter.emit_queue(
+            event_type="queue_completed",
+            track_id=102,
+            zone_id="PURPLLE_MUM_1076_Z_BILLING_01",
+            zone_name="Billing Counter Queue",
+            queue_join_ts="2026-03-08T18:13:05.080000",
+            queue_served_ts="2026-03-08T18:13:13.240000",
+            queue_exit_ts="2026-03-08T18:15:31.840000",
+            wait_seconds=8,
+            queue_position_at_join=2,
+            abandoned=False,
+            cx=602.8,
+            cy=183.4,
+            gender="M",
+            age=31,
+        )
+        emitter.flush()
+
+        with open(output_path) as f:
+            lines = f.readlines()
+            assert len(lines) == 1
+            data = json.loads(lines[0])
+            assert data["event_type"] == "queue_completed"
+            assert data["track_id"] == 102
+            assert data["wait_seconds"] == 8
+            assert data["abandoned"] is False
+            assert data["queue_position_at_join"] == 2

@@ -394,6 +394,7 @@ class MultiCameraTracker:
 
             results.append({
                 "track_id": scoped_track_id,
+                "raw_track_id": track_id,
                 "bbox": bbox,
                 "conf": conf,
                 "embedding": embedding,

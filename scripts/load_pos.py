@@ -31,11 +31,20 @@ def parse_raw_purplle(csv_path: str) -> list[dict]:
     """Parse Purplle raw sales CSV into pipeline-format records."""
     df = pd.read_csv(csv_path)
 
+    # Determine amount column dynamically (NMV, total_amount, or GMV)
+    amt_col = None
+    for col in ["NMV", "total_amount", "GMV"]:
+        if col in df.columns:
+            amt_col = col
+            break
+    if not amt_col:
+        raise ValueError(f"Could not find amount column (NMV, total_amount, or GMV) in {csv_path}")
+
     orders = df.groupby('order_id').agg(
         store_id=('store_id', 'first'),
         order_date=('order_date', 'first'),
         order_time=('order_time', 'first'),
-        NMV=('NMV', 'sum'),
+        amount=(amt_col, 'sum'),
     ).reset_index()
 
     records = []
@@ -53,7 +62,7 @@ def parse_raw_purplle(csv_path: str) -> list[dict]:
             "store_id":       str(row['store_id']),
             "transaction_id": f"TXN_{row['order_id']}",
             "timestamp":      timestamp,
-            "basket_value":   round(float(row['NMV']), 2),
+            "basket_value":   round(float(row['amount']), 2),
         })
     return records
 
@@ -89,9 +98,9 @@ async def load(csv_path: str, raw: bool):
         )
         await session.commit()
 
-    print(f"✓ Loaded {len(records)} POS transactions from {csv_path}")
+    print(f"Successfully loaded {len(records)} POS transactions from {csv_path}")
     for r in records[:5]:
-        print(f"  {r['transaction_id']}  {r['timestamp']}  ₹{r['basket_value']}")
+        print(f"  {r['transaction_id']}  {r['timestamp']}  INR {r['basket_value']}")
     if len(records) > 5:
         print(f"  ... and {len(records)-5} more")
 

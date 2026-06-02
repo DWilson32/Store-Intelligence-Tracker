@@ -81,6 +81,24 @@ class EventRecord(Base):
     sku_zone    = Column(String(64), nullable=True)
     session_seq = Column(Integer, nullable=True)
 
+    # Extended fields for sample event schema compatibility
+    gender_pred     = Column(String(4), nullable=True)    # M/F
+    age_pred        = Column(Integer, nullable=True)
+    age_bucket      = Column(String(16), nullable=True)   # e.g. "25-34"
+    is_face_hidden  = Column(Boolean, nullable=True)
+    group_id        = Column(String(32), nullable=True)
+    group_size      = Column(Integer, nullable=True)
+    zone_name       = Column(String(64), nullable=True)
+    zone_type       = Column(String(32), nullable=True)   # SHELF/DISPLAY/BILLING
+    is_revenue_zone = Column(String(4), nullable=True)    # Yes/No
+    zone_hotspot_x  = Column(Float, nullable=True)
+    zone_hotspot_y  = Column(Float, nullable=True)
+    queue_join_ts   = Column(String(32), nullable=True)
+    queue_served_ts = Column(String(32), nullable=True)
+    queue_exit_ts   = Column(String(32), nullable=True)
+    wait_seconds    = Column(Integer, nullable=True)
+    queue_position  = Column(Integer, nullable=True)
+
     __table_args__ = (
         Index("ix_events_store_ts", "store_id", "timestamp"),
         Index("ix_events_store_type", "store_id", "event_type"),

@@ -64,6 +64,22 @@ async def _upsert_events(session: AsyncSession, events: list[StoreEventIn]) -> d
             "queue_depth": ev.metadata.queue_depth if ev.metadata else None,
             "sku_zone":   ev.metadata.sku_zone if ev.metadata else None,
             "session_seq": ev.metadata.session_seq if ev.metadata else None,
+            "gender_pred": ev.metadata.gender_pred if ev.metadata else None,
+            "age_pred":    ev.metadata.age_pred if ev.metadata else None,
+            "age_bucket":  ev.metadata.age_bucket if ev.metadata else None,
+            "is_face_hidden": ev.metadata.is_face_hidden if ev.metadata else None,
+            "group_id":    ev.metadata.group_id if ev.metadata else None,
+            "group_size":  ev.metadata.group_size if ev.metadata else None,
+            "zone_name":   ev.metadata.zone_name if ev.metadata else None,
+            "zone_type":   ev.metadata.zone_type if ev.metadata else None,
+            "is_revenue_zone": ev.metadata.is_revenue_zone if ev.metadata else None,
+            "zone_hotspot_x": ev.metadata.zone_hotspot_x if ev.metadata else None,
+            "zone_hotspot_y": ev.metadata.zone_hotspot_y if ev.metadata else None,
+            "queue_join_ts":  ev.metadata.queue_join_ts if ev.metadata else None,
+            "queue_served_ts": ev.metadata.queue_served_ts if ev.metadata else None,
+            "queue_exit_ts":  ev.metadata.queue_exit_ts if ev.metadata else None,
+            "wait_seconds":   ev.metadata.wait_seconds if ev.metadata else None,
+            "queue_position": ev.metadata.queue_position if ev.metadata else None,
         })
 
     if records_to_insert:
@@ -92,6 +108,101 @@ async def _upsert_events(session: AsyncSession, events: list[StoreEventIn]) -> d
                     ))
 
     return {"accepted": accepted, "duplicates": duplicates, "errors": errors}
+
+
+def normalize_event(raw: dict) -> dict:
+    from app.models import VALID_EVENT_TYPES
+    # Check if this is a sample-format event
+    sample_keys = ("id_token", "store_code", "event_timestamp", "event_time", "queue_join_ts", "queue_event_id", "track_id")
+    is_sample = any(k in raw for k in sample_keys)
+
+    if not is_sample:
+        # If it is not a sample format event, keep it exactly as-is to preserve validation failures on missing fields
+        return raw
+
+    # Clone the dictionary to avoid mutating the input
+    norm = dict(raw)
+
+    # 1. Map event_type
+    evt_type = str(norm.get("event_type", "")).lower()
+    type_map = {
+        "entry": "ENTRY",
+        "exit": "EXIT",
+        "zone_entered": "ZONE_ENTER",
+        "zone_exited": "ZONE_EXIT",
+        "queue_completed": "BILLING_QUEUE_JOIN",
+        "queue_abandoned": "BILLING_QUEUE_ABANDON",
+    }
+    if evt_type in type_map:
+        norm["event_type"] = type_map[evt_type]
+    else:
+        norm["event_type"] = evt_type.upper()
+
+    # 2. Map event_id
+    if "event_id" not in norm:
+        norm["event_id"] = norm.get("queue_event_id") or str(uuid.uuid4())
+
+    # 3. Map store_id
+    if "store_id" not in norm:
+        store_code = norm.get("store_code")
+        if store_code:
+            norm["store_id"] = str(store_code).upper().replace("STORE_", "ST")
+        else:
+            norm["store_id"] = "ST1076"
+
+    # 4. Map visitor_id
+    if "visitor_id" not in norm:
+        if "id_token" in norm:
+            norm["visitor_id"] = norm["id_token"]
+        elif "track_id" in norm:
+            norm["visitor_id"] = f"VIS_T{norm['track_id']}"
+        else:
+            norm["visitor_id"] = "VIS_UNKNOWN"
+
+    # 5. Map timestamp
+    if "timestamp" not in norm:
+        norm["timestamp"] = norm.get("event_timestamp") or norm.get("event_time") or norm.get("queue_join_ts") or datetime.now(timezone.utc).isoformat()
+
+    # 6. Map confidence
+    if "confidence" not in norm:
+        norm["confidence"] = 1.0
+
+    # 7. Map metadata
+    metadata = norm.get("metadata")
+    if not isinstance(metadata, dict):
+        metadata = {}
+
+    extra_fields = [
+        "gender_pred", "gender", "age_pred", "age", "age_bucket", "is_face_hidden",
+        "group_id", "group_size", "zone_name", "zone_type", "is_revenue_zone",
+        "zone_hotspot_x", "zone_hotspot_y", "queue_join_ts", "queue_served_ts",
+        "queue_exit_ts", "wait_seconds", "queue_position", "queue_position_at_join"
+    ]
+    for field in extra_fields:
+        if field in norm:
+            val = norm[field]
+            target_field = field
+            if field == "gender":
+                target_field = "gender_pred"
+            elif field == "age":
+                target_field = "age_pred"
+            elif field == "queue_position_at_join":
+                target_field = "queue_position"
+            metadata[target_field] = val
+
+    if "sku_zone" not in metadata:
+        z_id = norm.get("zone_id", "")
+        if "skincare" in str(z_id).lower() or "skin" in str(z_id).lower():
+            metadata["sku_zone"] = "skincare"
+        elif "makeup" in str(z_id).lower():
+            metadata["sku_zone"] = "makeup"
+        elif "lipstick" in str(z_id).lower():
+            metadata["sku_zone"] = "lipstick"
+        elif "billing" in str(z_id).lower():
+            metadata["sku_zone"] = "billing"
+
+    norm["metadata"] = metadata
+    return norm
 
 
 @router.post("/events/ingest", response_model=IngestResponse)
@@ -145,6 +256,8 @@ async def ingest_events(
     parse_errors: list[IngestError] = []
 
     for i, raw_event in enumerate(raw_events):
+        if isinstance(raw_event, dict):
+            raw_event = normalize_event(raw_event)
         event_id = raw_event.get("event_id") if isinstance(raw_event, dict) else None
         try:
             ev = StoreEventIn.model_validate(raw_event)
