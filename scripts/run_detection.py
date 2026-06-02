@@ -31,6 +31,11 @@ STORE_CONFIGS = {
     "ST1008": {
         "clips_dir": os.path.join(PROJECT_ROOT, "data", "clips"),
         "start_time": "2026-04-10T20:10:00Z",
+        "camera_start_times": {
+            "ST1008_ground_entry.mp4": "2026-04-10T20:10:00Z",
+            "ST1008_ground_floor.mp4": "2026-04-10T20:10:00Z",
+            "ST1008_ground_billing.mp4": "2026-04-10T20:10:00Z",
+        },
         "camera_map": {
             "ST1008_ground_entry.mp4": "CAM_ENTRY_01",
             "ST1008_ground_floor.mp4": "CAM_FLOOR_01",
@@ -42,6 +47,12 @@ STORE_CONFIGS = {
     "ST1076": {
         "clips_dir": os.path.join(PROJECT_ROOT, "data", "clips", "Store 2"),
         "start_time": "2026-03-08T18:10:00Z",
+        "camera_start_times": {
+            "entry 1.mp4": "2026-03-08T18:10:00Z",
+            "entry 2.mp4": "2026-03-08T18:10:00Z",
+            "zone.mp4": "2026-03-08T18:10:00Z",
+            "billing_area.mp4": "2026-03-08T18:27:00Z",
+        },
         "camera_map": {
             "entry 1.mp4": "CAM_ENTRY_01",
             "entry 2.mp4": "CAM_ENTRY_02",
@@ -60,6 +71,7 @@ def run_store_pipeline(store_id: str) -> list[str]:
     camera_map = config["camera_map"]
     clip_order = config["clip_order"]
     output_format = config["output_format"]
+    camera_start_times = config.get("camera_start_times", {})
 
     print(f"\n============================================================")
     print(f"  STARTING PIPELINE FOR STORE: {store_id} ({output_format} format)")
@@ -96,7 +108,8 @@ def run_store_pipeline(store_id: str) -> list[str]:
         if os.path.exists(output_path):
             os.remove(output_path)
 
-        print(f"\nProcessing {fname} (Camera: {camera_id}) -> {out_name}...")
+        clip_time = camera_start_times.get(fname, start_time)
+        print(f"\nProcessing {fname} (Camera: {camera_id}, Start: {clip_time}) -> {out_name}...")
 
         detector = StoreDetector(
             clip_path=clip_path,
@@ -104,7 +117,7 @@ def run_store_pipeline(store_id: str) -> list[str]:
             camera_id=camera_id,
             layout_path=LAYOUT_PATH,
             output_path=output_path,
-            clip_start_time=start_time,
+            clip_start_time=clip_time,
             tracker=shared_tracker,
             output_format=output_format,
         )

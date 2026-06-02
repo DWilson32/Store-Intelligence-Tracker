@@ -157,7 +157,9 @@ async def root():
 
 @app.get("/stores")
 async def list_stores():
-    layout_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "store_layout.json")
+    layout_path = "/data/store_layout.json"
+    if not os.path.exists(layout_path):
+        layout_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "store_layout.json")
     if os.path.exists(layout_path):
         try:
             with open(layout_path, "r", encoding="utf-8") as f:
