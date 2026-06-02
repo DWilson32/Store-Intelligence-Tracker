@@ -120,6 +120,7 @@ class SampleZoneEvent(BaseModel):
     event_time: str                       # ISO-8601
     zone_hotspot_x: float
     zone_hotspot_y: float
+    is_staff: bool = False
     gender: Optional[str] = None
     age: Optional[int] = None
     age_bucket: Optional[str] = None
@@ -147,6 +148,7 @@ class SampleQueueEvent(BaseModel):
     abandoned: bool
     zone_hotspot_x: float
     zone_hotspot_y: float
+    is_staff: bool = False
     gender: Optional[str] = None
     age: Optional[int] = None
     age_bucket: Optional[str] = None
@@ -319,6 +321,7 @@ class SampleEventEmitter:
         is_revenue_zone: str,
         cx: float,
         cy: float,
+        is_staff: bool = False,
         gender: Optional[str] = None,
         age: Optional[int] = None,
     ):
@@ -338,6 +341,7 @@ class SampleEventEmitter:
             event_time=timestamp,
             zone_hotspot_x=round(cx, 1),
             zone_hotspot_y=round(cy, 1),
+            is_staff=is_staff,
             gender=gender,
             age=age,
             age_bucket=age_to_bucket(age) if age else None,
@@ -358,6 +362,7 @@ class SampleEventEmitter:
         abandoned: bool,
         cx: float,
         cy: float,
+        is_staff: bool = False,
         gender: Optional[str] = None,
         age: Optional[int] = None,
     ):
@@ -379,6 +384,7 @@ class SampleEventEmitter:
             abandoned=abandoned,
             zone_hotspot_x=round(cx, 1),
             zone_hotspot_y=round(cy, 1),
+            is_staff=is_staff,
             gender=gender,
             age=age,
             age_bucket=age_to_bucket(age) if age else None,

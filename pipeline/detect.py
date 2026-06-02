@@ -533,6 +533,7 @@ class StoreDetector:
                         zone_type=prev_info.get("zone_type", "SHELF"),
                         is_revenue_zone=prev_info.get("is_revenue_zone", "Yes"),
                         cx=session.last_cx, cy=session.last_cy,
+                        is_staff=is_staff,
                         gender=session.gender, age=session.age,
                     )
                 elif self.emitter:
@@ -560,6 +561,7 @@ class StoreDetector:
                         zone_type=zone_type or "SHELF",
                         is_revenue_zone=is_rev,
                         cx=session.last_cx, cy=session.last_cy,
+                        is_staff=is_staff,
                         gender=session.gender, age=session.age,
                     )
                 elif self.emitter:
@@ -812,6 +814,7 @@ class StoreDetector:
                             queue_position_at_join=queue_pos,
                             abandoned=abandoned,
                             cx=cx, cy=cy,
+                            is_staff=is_staff,
                             gender=session.gender, age=session.age,
                         )
                     elif self.emitter:
